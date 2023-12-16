@@ -4,6 +4,15 @@ from Coordinate import Coordinate
 from State import State
 from hueristic import heuristic
 from PIL import Image
+import bisect
+
+# Colors
+RED = (255, 0, 0, 255)
+YELLOW = (255, 255, 0, 255)
+GREEN = (0, 255, 0, 255)
+BLUE = (0, 0, 255, 255)
+WHITE = (255, 255, 255, 255)
+BLACK = (0, 0, 0, 255)
 
 # Recursize function for A* search algorithm
 def get_path_astar(img: Image, goal: Coordinate, open_list: list[State], closed_list: list[State], current_path: list[State]) -> list[State]:

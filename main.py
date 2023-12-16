@@ -2,6 +2,7 @@
 ## 12/3/2023
 
 from PIL import Image
+from astar_search import astar_search
 
 ###################### Global Definitions ######################
 
@@ -12,7 +13,6 @@ GREEN = (0, 255, 0, 255)
 BLUE = (0, 0, 255, 255)
 WHITE = (255, 255, 255, 255)
 BLACK = (0, 0, 0, 255)
-
 
 
 ###################### Main Function ######################
