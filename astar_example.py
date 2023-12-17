@@ -61,7 +61,8 @@ else:
 
 # Call the A* search algorithm
 img_out = image.copy()
-path = astar_search(img_out, start_coordinates, goal_coordinates)
+astar = astar_search(img_out, start_coordinates, goal_coordinates)
+path = astar.getPath()
 
 # Save the resulting output
 img_out.save('output.png')
