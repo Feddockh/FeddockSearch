@@ -2,109 +2,75 @@
 
 from Coordinate import Coordinate
 from State import State
-from hueristic import heuristic
-from PIL import Image
-import bisect
+from Environment import Environment
+from typing import Callable
+import heapq
 
-# Colors
-RED = (255, 0, 0, 255)
-YELLOW = (255, 255, 0, 255)
-GREEN = (0, 255, 0, 255)
-BLUE = (0, 0, 255, 255)
-WHITE = (255, 255, 255, 255)
-BLACK = (0, 0, 0, 255)
+## Debugging ##
+debug = False
+if debug == True:
+    from PIL import Image
+    BLUE = (0, 0, 255, 255)
+    image_path = 'test1.png'
+    output_path = 'temp.png'
+    img = Image.open(image_path)
+
 
 class astar_search:
-    def __init__(self, img: Image, start_lst: list, goal_lst: list) -> None:
+    def __init__(self, env: Environment, start_coords: Coordinate, goal_coords: Coordinate, heuristic: Callable[[Coordinate, Coordinate], float]):
+        self.env = env
+        self.start_state = State(start_coords, 0, heuristic(start_coords, goal_coords))
+        self.goal_coords = goal_coords
+        self.heuristic = heuristic
 
-        self.img = img
-        self.start = Coordinate(start_lst[0], start_lst[1])
-        self.goal = Coordinate(goal_lst[0], goal_lst[1])
-        h = heuristic(self.start, self.goal)
-        s0 = State(self.start, 0, h)
-        self.open_list = [s0]
+        # TODO: Switch open and closed lists to mapped datatypes for speed
+        self.coord_path = []
+        self.open_list = []
         self.closed_list = []
-        self.path = []
 
+    def search(self) -> list[State]:
 
-    def astar(self):
+        # Get the start state and add to the priority queue
+        heapq.heappush(self.open_list, self.start_state)
 
-        # Begin the A* algorithm, calling the recursive function
-        self.path = self.get_path_astar(self.img, self.goal, self.open_list, self.closed_list, [])
+        # Iterate until the open list is empty
+        while self.open_list:
 
-    # TODO: Convert from recursive
-    # TODO: Use priority queue (heapq) for open list
+            # Get the current state from the priority queue
+            current_state = heapq.heappop(self.open_list)
+            self.closed_list.append(current_state)
 
-    # Recursize function for A* search algorithm
-    def get_path_astar(self, img: Image, goal: Coordinate, open_list: list[State], closed_list: list[State], current_path: list[State]) -> list[State]:
+            ## Debugging ##
+            if debug == True:
+                x = current_state.coordinate.position.x
+                y = current_state.coordinate.position.y
+                img.putpixel((x, y), BLUE)
+                img.save(output_path)
+                input("Press button")
 
-        # Check if there is anything in the open list
-        if not open_list:
-            return None
+            # Check if the current state's coordinates are equal to the goal coordinates
+            if current_state.coordinate == self.goal_coords:
+                return self.construct_path(current_state)
+            
+            # Explore the neighboring states
+            for neighbor_state in self.env.get_neighbors(current_state, self.goal_coords, self.heuristic):
 
-        # Get the next state to expand from the front of the open list
-        s = open_list.pop(0)
+                # Skip state if it has already been added to the closed list
+                if neighbor_state in self.closed_list:
+                    continue
 
-        # Add the state to the closed list
-        closed_list.append(s)
-
-        # Update the path
-        new_path = current_path.copy()
-        new_path.append(s)
-
-        # Check if the current state is the goal
-        if s.coordinate == goal:
-            return new_path
+                # Add the neighboring states to the open list priority queue if they are not already in it
+                # TODO: Update state if the f value is lower
+                if neighbor_state not in self.open_list:
+                    heapq.heappush(self.open_list, neighbor_state)
         
-        # Update the pixel color to show progress
-        pixels = img.load()
-        pixels[s.coordinate.x, s.coordinate.y] = BLUE
+        return None
 
-        # Next coordinates (clockwise)
-        next_coordinates = [(0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1)]
+    # Construct the coordinate path from the parents of the path states
+    def construct_path(self, goal_state: State) -> list[Coordinate]:
+        current_state = goal_state
+        while current_state:
+            self.coord_path.append(current_state.coordinate)
+            current_state = current_state.parent
+        return self.coord_path
 
-        # Check for the neighboring states
-        for dx, dy in next_coordinates:
-
-            # Get the next coordinate
-            x = s.coordinate.x + dx
-            y = s.coordinate.y + dy
-
-            # Check if the coordinate is valid
-            image_width, image_height = img.size
-            if 0 <= x < image_width and 0 <= y < image_height:
-
-                # Check for obstacle
-                pixel_color = img.getpixel((x, y))
-                if pixel_color != BLACK:
-
-                    # Create the coordinate object
-                    new_coordinate = Coordinate(x, y)
-                    g = s.g + 1
-                    h = heuristic(new_coordinate, goal)
-                    s2 = State(new_coordinate, g, h)
-
-                    # Check if the coordinate has already been added to the closed list
-                    if s2 not in closed_list:
-
-                        # If in the open list, then update state
-                        if s2 in open_list:
-
-                            # Find the index of the existing state 
-                            idx = open_list.index(s2)
-
-                            # Replace the state in the list if the f value is smaller
-                            if s2.f < open_list[idx].f:
-                                open_list.pop(idx)
-                                bisect.insort_left(open_list, s2)
-
-                        # If not in the open list either, then add the state to the open list
-                        else:
-                            bisect.insort_left(open_list, s2)
-                            pixels[s2.coordinate.x, s2.coordinate.y] = YELLOW
-        
-        # Recursively call the function
-        return self.get_path_astar(img, goal, open_list, closed_list, new_path)
-    
-    def getPath(self) -> list:
-        return self.path

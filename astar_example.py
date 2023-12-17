@@ -2,6 +2,9 @@
 ## 12/3/2023
 
 from PIL import Image
+from Environment import Environment, img_to_dat
+import heuristic
+from Coordinate import Coordinate
 from astar_search import astar_search
 
 ###################### Global Definitions ######################
@@ -14,11 +17,13 @@ BLUE = (0, 0, 255, 255)
 WHITE = (255, 255, 255, 255)
 BLACK = (0, 0, 0, 255)
 
-
-###################### Main Function ######################
-
 # Specify the path to your PNG image
 image_path = "test1.png"
+
+# Set the dat filename
+dat_filename = 'temp.dat'
+
+###################### Main Function ######################
 
 # Define the image
 image = None
@@ -37,35 +42,45 @@ image_width, image_height = image.size
 print(f"Image dimensions: {image_width}x{image_height} pixels")
 
 # Initialize start and end coordinates
-start_coordinates = None
-goal_coordinates = None
+start_coordinate = None
+goal_coordinate = None
 
 # Find the start and end coordinates in the image
 for y in range(image_height):
     for x in range(image_width):
         pixel_color = image.getpixel((x, y))
         if pixel_color == GREEN:
-            start_coordinates = (x, y)
+            start_coordinate = (x, y)
+            image.putpixel((x, y), WHITE) # IMPORTANT: Set to white so that it is not included in the cost mapping
         elif pixel_color == RED:
-            goal_coordinates = (x, y)
+            goal_coordinate = (x, y)
+            image.putpixel((x, y), WHITE)
 
-if start_coordinates is not None:
-    print(f"Starting green pixel coordinates: {start_coordinates}")
+# User output
+if start_coordinate is not None:
+    print(f"Starting green pixel coordinates: {start_coordinate}")
 else:
     print("Starting green pixel not found.")
 
-if goal_coordinates is not None:
-    print(f"Ending red pixel coordinates: {goal_coordinates}")
+if goal_coordinate is not None:
+    print(f"Ending red pixel coordinates: {goal_coordinate}")
 else:
     print("Ending red pixel not found.")
 
-# Call the A* search algorithm
-img_out = image.copy()
-astar = astar_search(img_out, start_coordinates, goal_coordinates)
-path = astar.getPath()
+# Create the environment
+env = Environment(2, img_to_dat(image, dat_filename))
+
+# Perform the A* search
+astar = astar_search(env, Coordinate(start_coordinate), Coordinate(goal_coordinate), heuristic.euclidean_distance)
+path = astar.search()
+
+# Write the path to the image in blue
+for coord in path:
+    x, y, _ = coord.position.getVector()
+    image.putpixel((x, y), BLUE)
 
 # Save the resulting output
-img_out.save('output.png')
+image.save('output.png')
 
 
 
