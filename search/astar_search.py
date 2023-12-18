@@ -1,8 +1,8 @@
 # Hayden Feddock
 
-from Coordinate import Coordinate
-from State import State
-from Environment import Environment
+from core.Coordinate import Coordinate
+from core.State import State
+from core.Environment import Environment
 from typing import Callable
 import heapq
 
@@ -11,16 +11,17 @@ debug = False
 if debug == True:
     from PIL import Image
     BLUE = (0, 0, 255, 255)
-    image_path = 'test1.png'
-    output_path = 'temp.png'
+    image_path = "test/test1_pose1"
+    output_path = "temp_data/temp.png"
     img = Image.open(image_path)
 
 
 class astar_search:
-    def __init__(self, env: Environment, start_coords: Coordinate, goal_coords: Coordinate, heuristic: Callable[[Coordinate, Coordinate], float]):
+    def __init__(self, env: Environment, start_coord: Coordinate, goal_coord: Coordinate, heuristic: Callable[[Coordinate, Coordinate], float]):
         self.env = env
-        self.start_state = State(start_coords, 0, heuristic(start_coords, goal_coords))
-        self.goal_coords = goal_coords
+        h = heuristic(start_coord, goal_coord)
+        self.start_state = State(start_coord, 0, h)
+        self.goal_state = State(goal_coord, 0, 0)
         self.heuristic = heuristic
 
         # TODO: Switch open and closed lists to mapped datatypes for speed
@@ -49,18 +50,18 @@ class astar_search:
                 input("Press button")
 
             # Check if the current state's coordinates are equal to the goal coordinates
-            if current_state.coordinate == self.goal_coords:
+            if current_state == self.goal_state:
                 return self.construct_path(current_state)
             
             # Explore the neighboring states
-            for neighbor_state in self.env.get_neighbors(current_state, self.goal_coords, self.heuristic):
+            for neighbor_state in self.env.get_neighbors(current_state, [self.goal_state], self.heuristic):
 
                 # Skip state if it has already been added to the closed list
                 if neighbor_state in self.closed_list:
                     continue
 
                 # Add the neighboring states to the open list priority queue if they are not already in it
-                # TODO: Update state if the f value is lower
+                # TODO: Update state if the g value is lower
                 if neighbor_state not in self.open_list:
                     heapq.heappush(self.open_list, neighbor_state)
         
@@ -69,8 +70,10 @@ class astar_search:
     # Construct the coordinate path from the parents of the path states
     def construct_path(self, goal_state: State) -> list[Coordinate]:
         current_state = goal_state
+        coord_path = []
         while current_state:
-            self.coord_path.append(current_state.coordinate)
+            coord_path.append(current_state.coordinate)
             current_state = current_state.parent
+        self.coord_path = coord_path[::-1]
         return self.coord_path
 

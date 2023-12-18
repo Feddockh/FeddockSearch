@@ -1,7 +1,7 @@
 # Hayden Feddock
 
-from Coordinate import Coordinate
-from State import State
+from .Coordinate import Coordinate
+from .State import State
 from typing import Callable
 from itertools import product
 import numpy as np
@@ -16,11 +16,20 @@ class Environment:
         self.memmap_array = memmap_array
         self.offsets = self.get_neighbor_offsets()
     
+    def getCost(self, coord: Coordinate) -> float:
+        dim_vector = coord.getVector()[:self.dim] # Only include dimensions needed
+        access_vector = dim_vector[::-1] # Reverse for proper indexing
+        return self.memmap_array[access_vector]
+    
+    def iscollisionfree(self, coord: Coordinate) -> bool:
+        return self.getCost(coord) != MAX_COST
+    
     # TODO: Update for 6 and 7 dimension orientation offsets
     def get_neighbor_offsets(self) -> list:
         return [offset for offset in product([-1, 0, 1], repeat=self.dim) if not all(o == 0 for o in offset)]
 
-    def get_neighbors(self, current_state: State, goal_coords: Coordinate, heuristic: Callable[[Coordinate, Coordinate], float]) -> list[State]:
+    # Get the neighboring states of the current state with respect to the goal coordinates
+    def get_neighbors(self, current_state: State, goal_states: list[State], heuristic: Callable[[Coordinate, Coordinate], float]) -> list[State]:
 
         # Define the list of neighbors
         neighbors = []
@@ -45,11 +54,10 @@ class Environment:
                 continue
 
             # Create the new state and add it to the neighbors list
-            # Check the value in the memmory array
-            cost = self.memmap_array[new_coord_vector[::-1]] # Reversing tuple because I am addressing the ... z, y, then x value
-            if cost != MAX_COST:
+            if self.iscollisionfree(new_coord):
+                cost = self.getCost(new_coord)
                 g = current_state.g + cost
-                h = heuristic(new_coord, goal_coords)
+                h = min(heuristic(new_coord, goal_state.coordinate) for goal_state in goal_states) # Compute the minimum hueristic across all goal states
                 new_s = State(new_coord, g, h, current_state)
                 neighbors.append(new_s)
         

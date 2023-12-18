@@ -1,6 +1,6 @@
 # Hayden Feddock
 
-from Coordinate import Coordinate
+from .Coordinate import Coordinate
 
 # Define the state class
 class State:

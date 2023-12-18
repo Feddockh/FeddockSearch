@@ -1,6 +1,6 @@
 # Hayden Feddock
 
-from Coordinate import Coordinate
+from .Coordinate import Coordinate
 from math import sqrt
 
 # Euclidean distance heuristic 
