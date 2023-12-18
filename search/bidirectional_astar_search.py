@@ -23,11 +23,12 @@ class bidirectional_astar_search:
     def __init__(self, env: Environment, start_coord_list: list[Coordinate], goal_coord_list: list[Coordinate], heuristic: Callable[[Coordinate, Coordinate], float]):
         self.env = env
         self.heuristic = heuristic
-        self.coord_path = []
 
         # Define forward list
         self.forward_open_list = []
         self.forward_closed_list = []
+        self.coord_path = []
+        self.path_cost = None
 
         # Fill the forward open list with states the start coordinate list
         for start_coord in start_coord_list:
@@ -101,8 +102,24 @@ class bidirectional_astar_search:
             if neighbor_state in closed_list:
                 continue
 
-            # Add neighbor state to open list if it has not been already
-            if neighbor_state not in open_list:
+            # Check if the neighboring state is already in the open list
+            if neighbor_state in open_list:
+
+                # TODO: Implement open list as mapped datatype for faster search speed
+                # Get the index of the matching state
+                i = open_list.index(neighbor_state)
+            
+                # If the g value of the neighbor state is lower that that of the state in the open set, then replace the state in the open set
+                if neighbor_state.g < open_list[i].g:
+                    open_list[i].g = neighbor_state.g
+                    open_list[i].f = open_list[i].g + open_list[i].h
+                    open_list[i].parent = neighbor_state.parent
+
+                    # Update the heap
+                    heapq.heapify(open_list)
+
+            # If the state does not already exist in the open set then add it
+            else:
                 heapq.heappush(open_list, neighbor_state)
                 new_states.append(neighbor_state)
 
@@ -120,6 +137,9 @@ class bidirectional_astar_search:
     
     # Construct the coordinate path from the parents of the path states
     def construct_path(self, forward_state: State, backward_state: State) -> list[Coordinate]:
+
+        # Compute the path cost for each and combine
+        self.path_cost = forward_state.parent.g + backward_state.g
         
         # Unravel the forward states first
         current_state = forward_state

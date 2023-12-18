@@ -3,8 +3,8 @@
 from core.Coordinate import Coordinate
 from core.State import State
 from core.Environment import Environment
+from core.PriorityQueueDictionary import PriorityQueueDictionary
 from typing import Callable
-import heapq
 
 ## Debugging ##
 debug = False
@@ -24,22 +24,22 @@ class astar_search:
         self.goal_state = State(goal_coord, 0, 0)
         self.heuristic = heuristic
 
-        # TODO: Switch open and closed lists to mapped datatypes for speed
+        self.open_list = PriorityQueueDictionary()
+        self.closed_set = set() # Set for access in O(n)
         self.coord_path = []
-        self.open_list = []
-        self.closed_list = []
+        self.path_cost = None
 
     def search(self) -> list[State]:
 
         # Get the start state and add to the priority queue
-        heapq.heappush(self.open_list, self.start_state)
+        self.open_list.push(self.start_state.coordinate, self.start_state, self.start_state.f)
 
         # Iterate until the open list is empty
-        while self.open_list:
+        while not self.open_list.isempty():
 
             # Get the current state from the priority queue
-            current_state = heapq.heappop(self.open_list)
-            self.closed_list.append(current_state)
+            current_state = self.open_list.pop()
+            self.closed_set.add(current_state)
 
             ## Debugging ##
             if debug == True:
@@ -57,18 +57,25 @@ class astar_search:
             for neighbor_state in self.env.get_neighbors(current_state, [self.goal_state], self.heuristic):
 
                 # Skip state if it has already been added to the closed list
-                if neighbor_state in self.closed_list:
+                if neighbor_state in self.closed_set:
                     continue
 
-                # Add the neighboring states to the open list priority queue if they are not already in it
-                # TODO: Update state if the g value is lower
-                if neighbor_state not in self.open_list:
-                    heapq.heappush(self.open_list, neighbor_state)
-        
+                # Check if the neighboring state is already in the open list
+                if neighbor_state.coordinate in self.open_list:
+
+                    # If the g value of the neighbor state is lower that that of the state in the open set, then replace the state in the open set
+                    if neighbor_state.g < self.open_list.get(neighbor_state.coordinate).g:
+                        self.open_list.push(neighbor_state.coordinate, neighbor_state, neighbor_state.f)
+
+                # If the state does not already exist in the open set then add it
+                else:
+                    self.open_list.push(neighbor_state.coordinate, neighbor_state, neighbor_state.f)
+                    
         return None
 
     # Construct the coordinate path from the parents of the path states
     def construct_path(self, goal_state: State) -> list[Coordinate]:
+        self.path_cost = goal_state.g
         current_state = goal_state
         coord_path = []
         while current_state:

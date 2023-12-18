@@ -22,6 +22,7 @@ class fh_astar_search:
         self.heuristic = heuristic
         self.coord_path = coord_path
         self.goal_coord = coord_path[len(coord_path)-1]
+        self.path_cost = None
 
     def search(self) -> list[State]:
 
@@ -46,7 +47,7 @@ class fh_astar_search:
 
                 # Update the last state and current coordinate
                 cost = self.env.getCost(current_coord)
-                g = last_state.g + cost
+                g = last_state.g + cost + 1
                 h = self.heuristic(current_coord, self.goal_coord)
                 last_state = State(current_coord, g, h, last_state)
                 i += 1
@@ -77,6 +78,9 @@ class fh_astar_search:
             last_state = State(current_coord, g, h, last_state)
             i += 1
             current_coord = self.coord_path[i]
+
+        # Set the path cost
+        self.path_cost = last_state.g
 
         return self.coord_path
 

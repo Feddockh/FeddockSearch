@@ -62,3 +62,6 @@ class Coordinate:
         if isinstance(other, Coordinate):
             return (self.position == other.position) and (self.orientation == other.orientation) and (self.dim == other.dim)
         raise ValueError("Comparison with objects of different types is not permitted")
+    
+    def __hash__(self) -> int:
+        return hash(self.getVector())

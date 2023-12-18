@@ -56,7 +56,7 @@ class Environment:
             # Create the new state and add it to the neighbors list
             if self.iscollisionfree(new_coord):
                 cost = self.getCost(new_coord)
-                g = current_state.g + cost
+                g = current_state.g + cost + 1
                 h = min(heuristic(new_coord, goal_state.coordinate) for goal_state in goal_states) # Compute the minimum hueristic across all goal states
                 new_s = State(new_coord, g, h, current_state)
                 neighbors.append(new_s)

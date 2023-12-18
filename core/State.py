@@ -22,5 +22,7 @@ class State:
         if isinstance(other, State):
             return self.f > other.f
         raise ValueError("Comparison with objects of different types is not permitted")
+    def __hash__(self) -> int:
+        return hash(self.coordinate)
 
 

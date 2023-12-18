@@ -19,12 +19,13 @@ PINK = (255, 0, 255, 255)
 WHITE = (255, 255, 255, 255)
 BLACK = (0, 0, 0, 255)
 
-image1_path = "tests/test1_pose1.png"
-image2_path = "tests/test1_pose2.png"
+test_num = 3
+image1_path = "tests/test" + str(test_num) + "_pose1.png"
+image2_path = "tests/test" + str(test_num) + "_pose2.png"
 dat1_filename = "temp_data/temp1.dat"
 dat2_filename = "temp_data/temp2.dat"
-image1_out_path = "output/test1_pose1_out.png"
-image2_out_path = "output/test1_pose2_out.png"
+image1_out_path = "output/test" + str(test_num) + "_pose1_out.png"
+image2_out_path = "output/test" + str(test_num) + "_pose2_out.png"
 
 ###################### Main Function ######################
 
@@ -98,6 +99,8 @@ env2 = Environment(2, img_to_dat(frame2, dat2_filename))
 num_tests = 10
 astar_trial_times = []
 fh_astar_trial_times = []
+astar_path_cost = None
+fh_astar_path_cost = None
 for i in range(num_tests):
 
     ## A* Search ##
@@ -105,17 +108,21 @@ for i in range(num_tests):
     astar_start_time = time.time()
     astar_path = astar.search()
     astar_trial_times.append(time.time() - astar_start_time)
+    astar_path_cost = astar.path_cost
 
     ## Fast Healing A* ##
     fh_astar = fh_astar_search(env2, init_path, euclidean_distance)
     astar_start_time = time.time()
     fh_astar_path = fh_astar.search()
     fh_astar_trial_times.append(time.time() - astar_start_time)
+    fh_astar_path_cost = fh_astar.path_cost
 
 astar_execution_time = sum(astar_trial_times)/num_tests
 fh_astar_execution_time = sum(fh_astar_trial_times)/num_tests
 print(f"The average execution time of A* over {num_tests} trials is {astar_execution_time} seconds.")
 print(f"The average execution time of FHA* over {num_tests} trials is {fh_astar_execution_time} seconds.")
+print(f"The path cost of A* is {astar_path_cost}")
+print(f"The path cost of FHA* is {fh_astar_path_cost}")
 
 # Write the path for the second frame (FHA* = BLUE, A* = PINK)
 for coord in astar_path:
