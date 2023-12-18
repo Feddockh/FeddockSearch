@@ -23,6 +23,66 @@ class PriorityQueueDictionary:
         heapq.heappush(self.priority_queue, (priority, self.unique_id, key))
         self.unique_id += 1
 
+    # Peek from the front of the priority queue
+    def peek(self, i = 0):
+
+        # Check for valid indicies
+        if i < 0 or i >= len(self.priority_queue):
+            return None
+        
+        # Return the next item, if there is one
+        j = i
+        while(j < len(self.priority_queue)):
+                
+            # Get the key from the priority queue
+            _, _, key = self.priority_queue[j]
+
+            # Get the item from the dictionary using the key
+            if key in self.dictionary:
+                return self.dictionary[key]
+
+            # If the key is not in the dictionary then the key-item pair must've been removed, remove the element from the priority queue
+            else:
+                self.priority_queue.pop(j)
+
+            # Increment the index to the next value in the priority queue
+            j += 1
+
+        return None
+    
+    # Slice from the front of the priority queue
+    def slice(self, i = 0, j = 1):
+
+        # Check for valid indicies
+        if i < 0 or i >= len(self.priority_queue):
+            return None
+        if j < 0 or j >= len(self.priority_queue):
+            j = len(self.priority_queue)
+        if j <= i:
+            j = i + 1
+        
+        # Return list of items
+        items = []
+        k = i
+        while(i < j and k < len(self.priority_queue)):
+                
+            # Get the key from the priority queue
+            _, _, key = self.priority_queue[k]
+
+            # Get the item from the dictionary using the key
+            if key in self.dictionary:
+                items.append(self.dictionary[key])
+                i += 1
+
+            # If the key is not in the dictionary then the key-item pair must've been removed, remove the element from the priority queue
+            else:
+                self.priority_queue.pop(k)
+            
+            # Increment the index to the next value in the priority queue
+            k += 1
+
+        return items
+
     # Pop the frontmost item from the priority queue
     def pop(self):
         
