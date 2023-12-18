@@ -22,7 +22,7 @@ class bidirectional_astar_search:
         self.heuristic = heuristic
         self.coord_path = []
         self.path_cost = None
-        UPDATE_WINDOW = 10 # A smaller update window trades faster processing time for lower optimality
+        self.UPDATE_WINDOW = 10 # A smaller update window trades faster processing time for lower optimality
 
         # Define forward list
         self.forward_open_list = PriorityQueueDictionary()
